@@ -1,24 +1,42 @@
 import React from 'react';
-import SHOP_DATA from './2.1 shop.data';
-import { CollectionPreview } from '../../components/collection-preview/collection-preview.component';
-class ShopPage extends React.Component {
-  constructor() {
-    super();
+import { Route } from 'react-router';
+import CollectionOverview from '../../components/collection-overview/collection-overview.component';
+import CollectionPage from '../collection/collection.component';
 
-    this.state = {
-      collection: SHOP_DATA,
-    };
+
+
+import {fetchCollectionStart} from '../../redux/shop/shop.actions'
+import { connect } from 'react-redux';
+
+import WihtSpinner from '../../components/with-spinner/with-spinner.component';
+
+
+
+// const Ppp = WihtSpinner(CollectionOverview)
+const CollectionOverviewWithSpinner = WihtSpinner(CollectionOverview)
+const CollectionPagewWithSpinner = WihtSpinner(CollectionPage)
+
+class ShopPage extends React.Component  {
+  state  = {
+    isLoading : false
+  }
+  unSubscribeFromSnapshot = null
+  componentDidMount(){
+   this.props.fetchCollectionStart()
   }
 
-  render() {
-    return (
-      <div>
-        {this.state.collection.map(({ title, id, routeName, items }) => (
-          <CollectionPreview key={id} title={title} items={items} />
-        ))}
-      </div>
-    );
-  }
-}
+  render(){
+    const {match} = this.props
+  return(
+  <div>
+    <Route exact path={`${match.path}`} render={(props) => <CollectionOverviewWithSpinner isLoading={this.state.isLoading} {...props}/>}></Route>
+    <Route  path={`${match.path}/:collectionId`} render={(props) => <CollectionPagewWithSpinner isLoading={this.state.isLoading} {...props}/>}></Route>
+  </div>
+  )}
+};
 
-export default ShopPage;
+const mapDispatchToProps = dispatch => ({
+  fetchCollectionStart : () => dispatch(fetchCollectionStart())
+})
+
+export default connect(null , mapDispatchToProps)( ShopPage);

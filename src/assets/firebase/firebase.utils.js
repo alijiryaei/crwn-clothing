@@ -2,10 +2,12 @@ import { initializeApp } from 'firebase/app';
 import {
   getFirestore,
   doc,
+  collection ,
   setDoc,
   getDoc,
+  writeBatch
 } from 'firebase/firestore';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider  , onAuthStateChanged , } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAOqIVspxvXtRkxllWphSB36P-vytLUiBs',
@@ -19,7 +21,9 @@ const firebaseConfig = {
 
 // Initialize Firebase
 initializeApp(firebaseConfig);
-const db = getFirestore();
+export const db = getFirestore();
+export const auth = getAuth();
+
 
 export const createUserProfileDocument = async (userAuth, otherData) => {
   if (!userAuth) return;
@@ -44,14 +48,53 @@ export const createUserProfileDocument = async (userAuth, otherData) => {
   return userRef;
 };
 
+// export const addCollectionAndDocuments = async (collectionKey , objectToAdd) => {
+
+//   const batch = writeBatch(db)
+//   objectToAdd.forEach( obj => {
+//     const newDocRef = doc(collection(db, collectionKey))
+//     batch.set(newDocRef , obj)
+//   })
+
+//   return await batch.commit()
+// }
+
+export const converCollectionsSnapshotToMap = (collections) => {
+  const transformedCollection = collections.docs.map( doc => {
+    const {items , title } = doc.data()
+
+    return {
+      routeName : encodeURI(title.toLowerCase()),
+      title ,
+      items ,
+      id : doc.id
+    }
+  })
+   return transformedCollection.reduce( (accumulator , collection ) => {
+   accumulator[collection.title.toLowerCase()] = collection;
+   return accumulator
+  } , {})
+}
+
 // export const auth = firebase.auth();
 // export const firestore = firebase.firestore();
 
-const provider = new GoogleAuthProvider();
+
+export const getCurrentUser = () => {
+  return new Promise((resolve , reject) => {
+    const unSubscribe = auth.onAuthStateChanged( userAuth => {
+      unSubscribe();
+      resolve(userAuth)
+    },reject)
+  })
+}
+
+
+export const provider = new GoogleAuthProvider();
 provider.setCustomParameters({
   prompt: 'select_account',
 });
 
-export const auth = getAuth();
+
 
 export const signInWithGoogle = () => signInWithPopup(auth, provider);
