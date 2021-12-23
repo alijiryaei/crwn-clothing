@@ -1,16 +1,18 @@
 import React from "react";
 
 import {ReactComponent as Logo} from './../../assets/crown.svg'
-import {auth} from '../../assets/firebase/firebase.utils'
-import { connect } from "react-redux";
 import ShopIcon from "../cart-icon/cart-icon.component";
 import CartDropdown from "../cart-dropdown/cart-dropdown.component";
 import { signOutStart } from "../../redux/user/user.action";
 // styles
 import { HeaderContainer , LogoContainer , OptionsContainer , OptionLink  } from "./header.styles";
+import { useSelector , useDispatch} from "react-redux";
 
-
-const Header = ({currentUser , toggleCartHidden , signOutStart}) => (
+const Header = () => {
+    const currentUser = useSelector(state => state.user.currentUser);
+    const toggleCartHidden = useSelector( state => state.cart.isHidden)
+    const dispatch = useDispatch();
+    return(
     <HeaderContainer>
         <LogoContainer to="/">
           <Logo className="logo" />
@@ -19,7 +21,7 @@ const Header = ({currentUser , toggleCartHidden , signOutStart}) => (
             <OptionLink to="/shop" className="option">shop</OptionLink>
             <OptionLink className="option">contact</OptionLink>
             { currentUser ?
-            <OptionLink as='div' onClick={signOutStart} className="option">sign out</OptionLink>
+            <OptionLink as='div' onClick={() => dispatch(signOutStart())} className="option">sign out</OptionLink>
             :
             <OptionLink to="/signin" className="option">sign in</OptionLink>
             }
@@ -30,14 +32,8 @@ const Header = ({currentUser , toggleCartHidden , signOutStart}) => (
         }
     </HeaderContainer>
 )
-const mapStateToProps = (state) => ({
-    currentUser : state.user.currentUser,
-    toggleCartHidden : state.cart.isHidden
-})
-
-const mapDispatchToProps = dispatch => ({
-    signOutStart : () => dispatch(signOutStart())
-})
+}
 
 
-export default connect(mapStateToProps,mapDispatchToProps)(Header);
+
+export default Header;
