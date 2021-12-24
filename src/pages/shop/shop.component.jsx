@@ -1,42 +1,33 @@
-import React from 'react';
+import React ,{Suspense, useEffect}from 'react';
 import { Route } from 'react-router';
-import CollectionOverview from '../../components/collection-overview/collection-overview.component';
-import CollectionPage from '../collection/collection.component';
-
-
-
+import { useDispatch } from 'react-redux';
 import {fetchCollectionStart} from '../../redux/shop/shop.actions'
-import { connect } from 'react-redux';
-
-import WihtSpinner from '../../components/with-spinner/with-spinner.component';
-
+import Spinner from '../../components/spinner/spinner.component';
+// import CollectionContainer from '../collection/collection.container';
 
 
-// const Ppp = WihtSpinner(CollectionOverview)
-const CollectionOverviewWithSpinner = WihtSpinner(CollectionOverview)
-const CollectionPagewWithSpinner = WihtSpinner(CollectionPage)
+const CollectionOverviewContainer = React.lazy(() => import('../../components/collection-overview/collection-overview.container'))
+// const CollectionPage = React.lazy(() => import('../collection/collection.component'))
+const CollectionContainer = React.lazy(() => import('../collection/collection.container'))
 
-class ShopPage extends React.Component  {
-  state  = {
-    isLoading : false
-  }
-  unSubscribeFromSnapshot = null
-  componentDidMount(){
-   this.props.fetchCollectionStart()
-  }
+const ShopPage = ({match}) =>  {
+  const dispatch = useDispatch();
 
-  render(){
-    const {match} = this.props
+  useEffect(() => {
+    dispatch(fetchCollectionStart());
+  },[fetchCollectionStart]);
+
+
   return(
   <div>
-    <Route exact path={`${match.path}`} render={(props) => <CollectionOverviewWithSpinner isLoading={this.state.isLoading} {...props}/>}></Route>
-    <Route  path={`${match.path}/:collectionId`} render={(props) => <CollectionPagewWithSpinner isLoading={this.state.isLoading} {...props}/>}></Route>
+    <Suspense fallback={<Spinner></Spinner>}>
+    <Route exact path={`${match.path}`} render={ props => <CollectionOverviewContainer {...props}></CollectionOverviewContainer>}></Route>
+    <Route  path={`${match.path}/:collectionId`} render={ props => <CollectionContainer {...props}></CollectionContainer>}></Route>
+    </Suspense>
   </div>
-  )}
+  )
 };
 
-const mapDispatchToProps = dispatch => ({
-  fetchCollectionStart : () => dispatch(fetchCollectionStart())
-})
 
-export default connect(null , mapDispatchToProps)( ShopPage);
+
+export default  ShopPage;
